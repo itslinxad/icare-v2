@@ -1,83 +1,46 @@
 import Image from "next/image";
+import Link from "next/link";
 import logo from "../public/logo-no-bg.png";
 
 export default function Home() {
   return (
-    <>
-      <div className="size-full flex items-center justify-center bg-gray-50">
-        <div className="w-full max-w-md px-6">
-          {/* Logo and Header Section */}
-          <div className="text-center mb-12">
-            <div className="flex justify-center mb-6">
-              <Image src={logo} alt="iCare++ Logo" className="h-32 w-auto"></Image>
-            </div>
-            <h1 className="text-[#1B6B7B] mb-3 text-3xl">Sign In</h1>
-            <p className="text-gray-600">Please enter your email and password</p>
-          </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 px-6">
+      <div className="text-center space-y-6 max-w-lg">
+        {/* Logo */}
+        <div className="flex justify-center">
+          <Image src={logo} alt="iCare++ Logo" className="h-28 w-auto" />
+        </div>
 
-          {/* Login Form */}
-          <form action="" className="space-y-6">
-            <div className="">
-              <label htmlFor="email" className="block text-sm text-gray-700 mb-2">
-                Email Address
-              </label>
-              <input
-                type="email"
-                id="email"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B6B7B] focus:border-transparent transition-all bg-white"
-                placeholder="Enter your email"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B6B7B] focus:border-transparent transition-all bg-white"
-                placeholder="Enter your password"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 text-[#1B6B7B] border-gray-300 rounded focus:ring-[#1B6B7B]"
-                />
-                <span className="ml-2 text-sm text-gray-700">Remember me</span>
-              </label>
-              <a href="#" className="text-sm text-[#1B6B7B] hover:underline">
-                Forgot password?
-              </a>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-[#1B6B7B] text-white py-3 rounded-lg hover:bg-[#155663] transition-colors"
-            >
-              Sign In
-            </button>
-          </form>
-
-          {/* Footer */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
-              <a href="#" className="text-[#1B6B7B] hover:underline">
-                Contact Administrator
-              </a>
-            </p>
-          </div>
-
-          {/* Additional Info */}
-          <p className="text-center text-xs text-gray-500 mt-6">
-            © 2026 iCARE++
+        {/* Welcome Text */}
+        <div className="space-y-3">
+          <h1 className="text-4xl font-bold text-[#1B6B7B]">Welcome to iCARE++</h1>
+          <p className="text-lg text-gray-600">
+            Your complete healthcare management solution
           </p>
         </div>
+
+        {/* Description */}
+        <p className="text-gray-500 text-sm leading-relaxed">
+          Streamline patient care, manage records, and enhance healthcare delivery 
+          with our comprehensive platform designed for modern medical practices.
+        </p>
+
+        {/* Sign In Button */}
+        <Link
+          href="/login"
+          className="inline-flex items-center justify-center gap-2 bg-[#1B6B7B] text-white px-8 py-3 rounded-xl font-medium hover:bg-[#155663] focus:outline-none focus:ring-2 focus:ring-[#1B6B7B] focus:ring-offset-2 transition-all duration-200 shadow-lg shadow-[#1B6B7B]/20"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v-4a4 4 0 00-4-4H6a4 4 0 00-4 4v4" />
+          </svg>
+          Sign In
+        </Link>
+
+        {/* Copyright */}
+        <p className="text-xs text-gray-400 pt-6">
+          &copy; 2026 iCARE++. All rights reserved.
+        </p>
       </div>
-    </>
+    </div>
   );
 }

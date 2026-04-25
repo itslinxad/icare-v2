@@ -1,0 +1,255 @@
+"use client";
+
+import Image from "next/image";
+import { useState } from "react";
+import logo from "../../public/logo-no-bg.png";
+
+const features = [
+  { 
+    icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z", 
+    label: "Patient Records Management",
+    description: "Secure digital records with easy access"
+  },
+  { 
+    icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z", 
+    label: "Smart Appointment Scheduling",
+    description: "Automated booking with calendar sync"
+  },
+  { 
+    icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z", 
+    label: "Comprehensive Analytics",
+    description: "Real-time insights and reporting"
+  },
+  { 
+    icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z", 
+    label: "Staff & Resource Management",
+    description: "Optimize team allocation"
+  },
+];
+
+export default function LoginPage() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeFeature, setActiveFeature] = useState<number | null>(null);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+  };
+
+  return (
+    <div className="min-h-screen flex">
+      {/* Left Panel - Branding */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#1B6B7B] via-[#0F4C5C] to-[#0A3640] relative overflow-hidden">
+        {/* Decorative Elements */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 right-0 w-72 h-72 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3" />
+        <div className="absolute top-1/2 left-1/2 w-40 h-40 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute top-1/4 right-1/4 w-24 h-24 border border-white/10 rounded-full" />
+        <div className="absolute bottom-1/3 left-1/4 w-16 h-16 border border-white/10 rounded-full" />
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col justify-center items-center w-full px-12 text-white">
+          <div className="mb-8">
+            <Image src={logo} alt="iCare++ Logo" className="h-24 w-auto" />
+          </div>
+          <h2 className="text-4xl font-bold mb-4 text-center">iCARE++</h2>
+          <p className="text-xl text-white/90 text-center max-w-md mb-10">
+            Your complete healthcare management solution
+          </p>
+
+          {/* Interactive Feature Cards */}
+          <div className="grid grid-cols-2 gap-4 w-full max-w-md">
+            {features.map((feature, index) => (
+              <button
+                key={index}
+                onClick={() => setActiveFeature(activeFeature === index ? null : index)}
+                onMouseEnter={() => setActiveFeature(index)}
+                onMouseLeave={() => setActiveFeature(null)}
+                className={`
+                  relative p-4 rounded-2xl text-left transition-all duration-300 group cursor-pointer
+                  ${activeFeature === index 
+                    ? 'bg-white/20 shadow-xl shadow-white/10 scale-[1.02]' 
+                    : 'bg-white/5 hover:bg-white/10 hover:scale-[1.01]'
+                  }
+                `}
+              >
+                <div className={`
+                  flex items-center justify-center w-12 h-12 rounded-xl mb-3 transition-all duration-300
+                  ${activeFeature === index ? 'bg-white/30' : 'bg-white/10 group-hover:bg-white/20'}
+                `}>
+                  <svg 
+                    className={`w-6 h-6 text-white transition-transform duration-300 ${activeFeature === index ? 'scale-110' : ''}`} 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={feature.icon} />
+                  </svg>
+                </div>
+                <h3 className="text-sm font-semibold text-white mb-1">{feature.label}</h3>
+                <p className={`
+                  text-xs text-white/70 transition-all duration-300 overflow-hidden
+                  ${activeFeature === index ? 'max-h-8 opacity-100' : 'max-h-0 opacity-0'}
+                `}>
+                  {feature.description}
+                </p>
+                <div className={`
+                  absolute bottom-2 right-2 w-2 h-2 rounded-full transition-all duration-300
+                  ${activeFeature === index ? 'bg-white scale-100' : 'bg-white/30 scale-0 group-hover:scale-100'}
+                `} />
+              </button>
+            ))}
+          </div>
+
+          {/* Stats */}
+          <div className="mt-12 flex gap-10 text-sm text-white/70">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-white">10K+</div>
+              <div>Patients</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-white">500+</div>
+              <div>Facilities</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-white">99.9%</div>
+              <div>Uptime</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel - Login Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12 bg-white">
+        <div className="w-full max-w-md space-y-8">
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex flex-col items-center mb-8">
+            <Image src={logo} alt="iCare++ Logo" className="h-20 w-auto mb-4" />
+            <h1 className="text-2xl font-bold text-[#1B6B7B]">iCARE++</h1>
+          </div>
+
+          {/* Header */}
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back</h1>
+            <p className="text-gray-500">Please enter your credentials to access your account</p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email Input */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-800 mb-2">
+                Email Address <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-[#1B6B7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                  </svg>
+                </div>
+                <input
+                  type="email"
+                  id="email"
+                  required
+                  className="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B6B7B] focus:border-[#1B6B7B] transition-all bg-gray-50/50 shadow-sm text-gray-800 placeholder:text-gray-400"
+                  placeholder="Enter your email"
+                />
+              </div>
+            </div>
+
+            {/* Password Input */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="password" className="block text-sm font-semibold text-gray-800">
+                  Password <span className="text-red-500">*</span>
+                </label>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-[#1B6B7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  required
+                  className="w-full pl-12 pr-12 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B6B7B] focus:border-[#1B6B7B] transition-all bg-gray-50/50 shadow-sm text-gray-800 placeholder:text-gray-400"
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                >
+                  {showPassword ? (
+                    <svg className="h-5 w-5 text-[#1B6B7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5 text-[#1B6B7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Remember Me & Forgot Password */}
+            <div className="flex items-center justify-between">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 text-[#1B6B7B] border-gray-300 rounded focus:ring-[#1B6B7B] cursor-pointer"
+                />
+                <span className="ml-2 text-sm text-gray-600">Remember me</span>
+              </label>
+              <a href="#" className="text-sm text-[#1B6B7B] hover:underline font-medium">
+                Forgot password?
+              </a>
+            </div>
+
+            {/* Sign In Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-[#1B6B7B] text-white py-3.5 px-6 rounded-xl font-semibold hover:bg-[#155663] focus:outline-none focus:ring-2 focus:ring-[#1B6B7B] focus:ring-offset-2 transition-all duration-200 shadow-lg shadow-[#1B6B7B]/20 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Signing in...
+                </>
+              ) : (
+                "Sign In"
+              )}
+            </button>
+          </form>
+
+          {/* Footer */}
+          <div className="text-center pt-4 border-t border-gray-100">
+            <p className="text-sm text-gray-500">
+              Don&apos;t have an account?{" "}
+              <a href="#" className="text-[#1B6B7B] hover:underline font-medium">
+                Contact Administrator
+              </a>
+            </p>
+          </div>
+
+          {/* Copyright */}
+          <p className="text-center text-xs text-gray-400">
+            &copy; 2026 iCARE++. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
