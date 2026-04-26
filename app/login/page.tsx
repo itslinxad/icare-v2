@@ -1,67 +1,93 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { useState } from "react";
+import { login, isAuthenticated, getCurrentUser, User } from "../lib/api";
 import logo from "../../public/logo-no-bg.png";
+import logo_white from "../../public/logo-white-no-bg.png"
+import logo_pill from "../../public/logo-pill.png"
 
 const features = [
-  { 
-    icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z", 
-    label: "Patient Records Management",
-    description: "Secure digital records with easy access"
+  {
+    icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z",
+    label: "Student Portal",
+    description: "Access clinical simulations and adaptive quizzes"
   },
-  { 
-    icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z", 
-    label: "Smart Appointment Scheduling",
-    description: "Automated booking with calendar sync"
+  {
+    icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4",
+    label: "Faculty Portal",
+    description: "Monitor student performance and manage scenarios"
   },
-  { 
-    icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z", 
-    label: "Comprehensive Analytics",
-    description: "Real-time insights and reporting"
+  {
+    icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
+    label: "Admin Portal",
+    description: "System administration and data analytics"
   },
-  { 
-    icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z", 
-    label: "Staff & Resource Management",
-    description: "Optimize team allocation"
+  {
+    icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
+    label: "ML-Powered Analytics",
+    description: "Early identification of at-risk students"
   },
 ];
 
 export default function LoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (isAuthenticated()) {
+      const user = getCurrentUser();
+      if (user) {
+        router.push(user.role === 'student' ? '/dashboard' : '/admin');
+      }
+    }
+  }, [router]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      const result = await login(email, password);
+
+      if (result) {
+        const user = result.user as User;
+        router.push(user.role === 'student' ? '/dashboard' : '/admin');
+      } else {
+        setError("Invalid email or password");
+      }
+    } catch (err) {
+      setError("Connection error. Please make sure the backend is running.");
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Panel - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#1B6B7B] via-[#0F4C5C] to-[#0A3640] relative overflow-hidden">
-        {/* Decorative Elements */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
         <div className="absolute bottom-0 right-0 w-72 h-72 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3" />
         <div className="absolute top-1/2 left-1/2 w-40 h-40 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
         <div className="absolute top-1/4 right-1/4 w-24 h-24 border border-white/10 rounded-full" />
         <div className="absolute bottom-1/3 left-1/4 w-16 h-16 border border-white/10 rounded-full" />
 
-        {/* Content */}
         <div className="relative z-10 flex flex-col justify-center items-center w-full px-12 text-white">
           <div className="mb-8">
-            <Image src={logo} alt="iCare++ Logo" className="h-24 w-auto" />
+            <Image src={logo_pill} alt="iCare++ Logo" className="h-24 w-auto" />
           </div>
-          <h2 className="text-4xl font-bold mb-4 text-center">iCARE++</h2>
+          <h1 className="text-3xl font-bold">iCARE++</h1>
           <p className="text-xl text-white/90 text-center max-w-md mb-10">
-            Your complete healthcare management solution
+            Clinical Competency Assessment & Adaptive Learning System
           </p>
 
-          {/* Interactive Feature Cards */}
           <div className="grid grid-cols-2 gap-4 w-full max-w-md">
             {features.map((feature, index) => (
               <button
@@ -71,8 +97,8 @@ export default function LoginPage() {
                 onMouseLeave={() => setActiveFeature(null)}
                 className={`
                   relative p-4 rounded-2xl text-left transition-all duration-300 group cursor-pointer
-                  ${activeFeature === index 
-                    ? 'bg-white/20 shadow-xl shadow-white/10 scale-[1.02]' 
+                  ${activeFeature === index
+                    ? 'bg-white/20 shadow-xl shadow-white/10 scale-[1.02]'
                     : 'bg-white/5 hover:bg-white/10 hover:scale-[1.01]'
                   }
                 `}
@@ -81,10 +107,10 @@ export default function LoginPage() {
                   flex items-center justify-center w-12 h-12 rounded-xl mb-3 transition-all duration-300
                   ${activeFeature === index ? 'bg-white/30' : 'bg-white/10 group-hover:bg-white/20'}
                 `}>
-                  <svg 
-                    className={`w-6 h-6 text-white transition-transform duration-300 ${activeFeature === index ? 'scale-110' : ''}`} 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
+                  <svg
+                    className={`w-6 h-6 text-white transition-transform duration-300 ${activeFeature === index ? 'scale-110' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={feature.icon} />
@@ -105,42 +131,42 @@ export default function LoginPage() {
             ))}
           </div>
 
-          {/* Stats */}
           <div className="mt-12 flex gap-10 text-sm text-white/70">
             <div className="text-center">
-              <div className="text-2xl font-bold text-white">10K+</div>
-              <div>Patients</div>
-            </div>
-            <div className="text-center">
               <div className="text-2xl font-bold text-white">500+</div>
-              <div>Facilities</div>
+              <div>Students</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-white">99.9%</div>
-              <div>Uptime</div>
+              <div className="text-2xl font-bold text-white">50+</div>
+              <div>Faculty</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-white">100%</div>
+              <div>Success Rate</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Right Panel - Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12 bg-white">
         <div className="w-full max-w-md space-y-8">
-          {/* Mobile Logo */}
           <div className="lg:hidden flex flex-col items-center mb-8">
             <Image src={logo} alt="iCare++ Logo" className="h-20 w-auto mb-4" />
             <h1 className="text-2xl font-bold text-[#1B6B7B]">iCARE++</h1>
           </div>
 
-          {/* Header */}
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back</h1>
             <p className="text-gray-500">Please enter your credentials to access your account</p>
           </div>
 
-          {/* Form */}
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email Input */}
             <div>
               <label htmlFor="email" className="block text-sm font-semibold text-gray-800 mb-2">
                 Email Address <span className="text-red-500">*</span>
@@ -154,6 +180,8 @@ export default function LoginPage() {
                 <input
                   type="email"
                   id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                   className="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B6B7B] focus:border-[#1B6B7B] transition-all bg-gray-50/50 shadow-sm text-gray-800 placeholder:text-gray-400"
                   placeholder="Enter your email"
@@ -161,7 +189,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Password Input */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label htmlFor="password" className="block text-sm font-semibold text-gray-800">
@@ -177,6 +204,8 @@ export default function LoginPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                   className="w-full pl-12 pr-12 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B6B7B] focus:border-[#1B6B7B] transition-all bg-gray-50/50 shadow-sm text-gray-800 placeholder:text-gray-400"
                   placeholder="Enter your password"
@@ -200,21 +229,13 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
               <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 text-[#1B6B7B] border-gray-300 rounded focus:ring-[#1B6B7B] cursor-pointer"
-                />
+                <input type="checkbox" className="w-4 h-4 text-[#1B6B7B] border-gray-300 rounded focus:ring-[#1B6B7B] cursor-pointer" />
                 <span className="ml-2 text-sm text-gray-600">Remember me</span>
               </label>
-              <a href="#" className="text-sm text-[#1B6B7B] hover:underline font-medium">
-                Forgot password?
-              </a>
             </div>
 
-            {/* Sign In Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -234,17 +255,15 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Footer */}
           <div className="text-center pt-4 border-t border-gray-100">
             <p className="text-sm text-gray-500">
-              Don&apos;t have an account?{" "}
-              <a href="#" className="text-[#1B6B7B] hover:underline font-medium">
-                Contact Administrator
-              </a>
+              Demo Credentials:<br />
+              student@icare.edu / student123<br />
+              faculty@icare.edu / faculty123<br />
+              admin@icare.edu / admin123
             </p>
           </div>
 
-          {/* Copyright */}
           <p className="text-center text-xs text-gray-400">
             &copy; 2026 iCARE++. All rights reserved.
           </p>
