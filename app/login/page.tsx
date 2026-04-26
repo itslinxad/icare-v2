@@ -80,12 +80,11 @@ export default function LoginPage() {
         <div className="absolute bottom-1/3 left-1/4 w-16 h-16 border border-white/10 rounded-full" />
 
         <div className="relative z-10 flex flex-col justify-center items-center w-full px-12 text-white">
-          <div className="mb-8">
-            <Image src={logo_pill} alt="iCare++ Logo" className="h-24 w-auto" />
+          <div className="mb-4">
+            <Image src={logo_white} alt="iCare++ Logo" className="h-20 w-auto" />
           </div>
-          <h1 className="text-3xl font-bold">iCARE++</h1>
           <p className="text-xl text-white/90 text-center max-w-md mb-10">
-            Clinical Competency Assessment & Adaptive Learning System
+            A Scalable Machine Learning-Driven Clinical Competency Assessment and Adaptive Learning System For Nursing Students
           </p>
 
           <div className="grid grid-cols-2 gap-4 w-full max-w-md">
@@ -130,21 +129,6 @@ export default function LoginPage() {
               </button>
             ))}
           </div>
-
-          <div className="mt-12 flex gap-10 text-sm text-white/70">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">500+</div>
-              <div>Students</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">50+</div>
-              <div>Faculty</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">100%</div>
-              <div>Success Rate</div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -156,7 +140,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back!</h1>
             <p className="text-gray-500">Please enter your credentials to access your account</p>
           </div>
 
@@ -239,7 +223,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#1B6B7B] text-white py-3.5 px-6 rounded-xl font-semibold hover:bg-[#155663] focus:outline-none focus:ring-2 focus:ring-[#1B6B7B] focus:ring-offset-2 transition-all duration-200 shadow-lg shadow-[#1B6B7B]/20 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-[#1B6B7B] text-white py-3.5 px-6 rounded-xl font-semibold hover:bg-[#155663] focus:outline-none focus:ring-2 focus:ring-[#1B6B7B] focus:ring-offset-2 transition-all duration-200 shadow-lg shadow-[#1B6B7B]/20 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
             >
               {isLoading ? (
                 <>
@@ -256,14 +240,7 @@ export default function LoginPage() {
           </form>
 
           <div className="text-center pt-4 border-t border-gray-100">
-            <p className="text-sm text-gray-500">
-              Demo Credentials:<br />
-              student@icare.edu / student123<br />
-              faculty@icare.edu / faculty123<br />
-              admin@icare.edu / admin123
-            </p>
           </div>
-
           <p className="text-center text-xs text-gray-400">
             &copy; 2026 iCARE++. All rights reserved.
           </p>

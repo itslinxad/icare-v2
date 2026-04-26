@@ -6,27 +6,28 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # Supabase config
 SUPABASE_URL = os.getenv("SUPABASE_URL", "https://elmbgvplnnavvmdnmald.supabase.co")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 
-# Try to connect to Supabase, fall back to mock data if fails
+# Force mock data for development (bypass Supabase issues)
 supabase = None
 USE_MOCK_DATA = True
+print("Using mock data (Supabase disabled for testing)")
 
-if SUPABASE_KEY and len(SUPABASE_KEY) > 10:
-    try:
-        from supabase import create_client, Client
-
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-        USE_MOCK_DATA = False
-        print("Connected to Supabase")
-    except Exception as e:
-        print(f"Supabase connection failed: {e}, using mock data")
-else:
-    print("No valid Supabase key, using mock data")
+# To enable Supabase, uncomment below:
+# if SUPABASE_KEY and len(SUPABASE_KEY) > 10:
+#     try:
+#         from supabase import create_client, Client
+#         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+#         USE_MOCK_DATA = False
+#         print("Connected to Supabase")
+#     except Exception as e:
+#         print(f"Supabase connection failed: {e}, using mock data")
+# else:
+#     print("No valid Supabase key, using mock data")
 
 # Mock data for development
 MOCK_USERS = [
@@ -322,7 +323,11 @@ def health_check():
 
 @app.route("/api/auth/login", methods=["POST"])
 def login():
+    print(f"Request data: {request.data}")
     data = request.get_json()
+    print(f"Parsed JSON: {data}")
+    if data is None:
+        return jsonify({"error": "Invalid JSON or no data provided"}), 400
     email = data.get("email")
     password = data.get("password")
 
@@ -330,6 +335,7 @@ def login():
         return jsonify({"error": "Email and password required"}), 400
 
     if USE_MOCK_DATA:
+        print(f"USE_MOCK_DATA=True, looking for {email}")
         user = next(
             (
                 u
@@ -338,18 +344,23 @@ def login():
             ),
             None,
         )
+        print(f"Found user: {user}")
         if user:
-            return jsonify(
-                {
-                    "success": True,
-                    "user": {
-                        "id": user["id"],
-                        "email": user["email"],
-                        "name": user["name"],
-                        "role": user["role"],
-                    },
-                }
-            )
+            try:
+                return jsonify(
+                    {
+                        "success": True,
+                        "user": {
+                            "id": user["id"],
+                            "email": user["email"],
+                            "name": user["name"],
+                            "role": user["role"],
+                        },
+                    }
+                )
+            except Exception as e:
+                print(f"JSONify error: {e}")
+                raise
         return jsonify({"error": "Invalid credentials"}), 401
 
     try:

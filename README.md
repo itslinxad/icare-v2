@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# iCARE++
+
+A scalable machine learning-driven clinical competency assessment and adaptive learning system for nursing students at Batangas State University – TNEU ARASOF Nasugbu.
+
+## Prerequisites
+
+- Node.js 18+
+- npm or yarn
+- Backend API (optional for development)
 
 ## Getting Started
 
-First, run the development server:
+1. **Install dependencies:**
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+   ```bash
+   npm install
+   ```
+
+2. **Configure environment:**
+   Copy `.env.local` and update variables:
+
+   ```bash
+   NEXT_PUBLIC_API_URL=http://localhost:5000/api
+   ```
+
+3. **Run development server:**
+
+   ```bash
+   npm run dev
+   ```
+
+4. **Open in browser:**
+   <http://localhost:3000>
+
+## Project Structure
+
+```
+app/
+├── admin/           # Dean/Super Admin portal
+│   ├── page.tsx           # Overview dashboard
+│   ├── analytics/         # Cohort analytics
+│   ├── student-management/# Student management
+│   ├── rooms/             # Room management
+│   ├── faculty/           # Faculty management
+│   ├── users/             # User accounts
+│   ├── reports/           # Reports & audit logs
+│   └── settings/           # Dean settings
+├── login/           # Authentication
+├── dashboard/       # Student dashboard
+├── patients/        # Patient management
+├── quizzes/         # Adaptive quizzes
+├── performance/     # Performance tracking
+└── lib/api.ts      # API utilities
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## User Roles
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Role | Portal | Access |
+|------|--------|--------|
+| **Super Admin (Dean)** | `/admin` | Full system, analytics, user management, data privacy |
+| **Faculty** | `/admin/faculty` | Student monitoring, grading, room oversight |
+| **Student** | `/dashboard` | Clinical tasks, quizzes, patient monitoring |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Key Features
 
-## Learn More
+- **ML-Powered Analytics** - Early identification of at-risk students
+- **Adaptive Quizzes** - Personalized learning recommendations
+- **Clinical Simulation** - Patient vital signs monitoring
+- **Role-Based Access Control** - Secure multi-role system
+- **Data Privacy Compliance** - Philippine Data Privacy Act 2012
 
-To learn more about Next.js, take a look at the following resources:
+## Design System
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Primary Color**: `#1B6B7B` (Teal)
+- **Safe/Positive**: Emerald
+- **At-Risk/Warning**: Rose
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Commands
 
-## Deploy on Vercel
+```bash
+npm run dev       # Start development server
+npm run build    # Build for production
+npm run lint     # Run ESLint
+npm run typecheck # Run TypeScript check
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Documentation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Codebase Summary](./CODEBASE_SUMMARY.md) - Technical overview
+

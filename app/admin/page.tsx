@@ -1,27 +1,4 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'student' | 'faculty' | 'admin';
-}
-
-function getCurrentUser(): User | null {
-  if (typeof window === 'undefined') return null;
-  const userStr = localStorage.getItem('icare_user');
-  return userStr ? JSON.parse(userStr) : null;
-}
-
-function logout(): void {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('icare_user');
-    localStorage.removeItem('icare_token');
-  }
-}
+import Link from "next/link";
 
 interface StudentPerformance {
   id: string;
@@ -31,6 +8,36 @@ interface StudentPerformance {
   average_score: number;
   at_risk: boolean;
   last_active: string;
+}
+
+interface Room {
+  id: string;
+  name: string;
+  capacity: number;
+  status: 'active' | 'inactive';
+  students_assigned: number;
+  floor: number;
+}
+
+interface Faculty {
+  id: string;
+  name: string;
+  email: string;
+  department: string;
+  specialization: string;
+  status: 'active' | 'inactive';
+  student_count: number;
+  years_experience: number;
+}
+
+interface UserAccount {
+  id: string;
+  name: string;
+  email: string;
+  role: 'student' | 'faculty' | 'administrator' | 'super_admin';
+  status: 'active' | 'inactive';
+  created_at: string;
+  last_login: string;
 }
 
 const mockStudents: StudentPerformance[] = [
@@ -44,423 +51,475 @@ const mockStudents: StudentPerformance[] = [
   { id: "8", name: "Anna Martinez", email: "anna@icare.edu", quizzes_completed: 8, average_score: 85, at_risk: false, last_active: "Today" },
 ];
 
+const mockRooms: Room[] = [
+  { id: "1", name: "Room 1", capacity: 10, status: "active", students_assigned: 8, floor: 1 },
+  { id: "2", name: "Room 2", capacity: 10, status: "active", students_assigned: 6, floor: 1 },
+  { id: "3", name: "Room 3", capacity: 8, status: "active", students_assigned: 8, floor: 2 },
+  { id: "4", name: "Room 4", capacity: 8, status: "inactive", students_assigned: 0, floor: 2 },
+  { id: "5", name: "Room 5", capacity: 12, status: "active", students_assigned: 5, floor: 2 },
+  { id: "6", name: "Room 6", capacity: 10, status: "active", students_assigned: 7, floor: 3 },
+];
+
+const mockFaculty: Faculty[] = [
+  { id: "1", name: "Dr. Maria Santos", email: "maria.santos@icare.edu", department: "Nursing", specialization: "Medical-Surgical Nursing", status: "active", student_count: 15, years_experience: 12 },
+  { id: "2", name: "Prof. James Rivera", email: "james.rivera@icare.edu", department: "Nursing", specialization: "Maternal and Child Health", status: "active", student_count: 12, years_experience: 8 },
+  { id: "3", name: "Ms. Anna Cruz", email: "anna.cruz@icare.edu", department: "Nursing", specialization: "Psychiatric Nursing", status: "active", student_count: 10, years_experience: 5 },
+  { id: "4", name: "Mr. Robert Tan", email: "robert.tan@icare.edu", department: "Nursing", specialization: "Community Health", status: "inactive", student_count: 0, years_experience: 15 },
+  { id: "5", name: "Dr. Carmen Lim", email: "carmen.lim@icare.edu", department: "Nursing", specialization: "Nursing Informatics", status: "active", student_count: 18, years_experience: 10 },
+];
+
+const mockUsers: UserAccount[] = [
+  { id: "1", name: "John Smith", email: "john.smith@icare.edu", role: "student", status: "active", created_at: "2024-01-15", last_login: "2024-03-20" },
+  { id: "9", name: "Dr. Maria Santos", email: "maria.santos@icare.edu", role: "administrator", status: "active", created_at: "2023-06-01", last_login: "2024-03-20" },
+  { id: "13", name: "Admin Super", email: "admin.super@icare.edu", role: "super_admin", status: "active", created_at: "2023-01-01", last_login: "2024-03-20" },
+];
+
 export default function AdminDashboard() {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [students] = useState<StudentPerformance[]>(mockStudents);
-  const [activeTab, setActiveTab] = useState("overview");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [riskFilter, setRiskFilter] = useState("all");
-
-  useEffect(() => {
-    const currentUser = getCurrentUser();
-    if (!currentUser) {
-      router.push("/login");
-    } else if (currentUser.role === 'student') {
-      router.push("/dashboard");
-    } else {
-      setUser(currentUser);
-    }
-  }, [router]);
-
-  const filteredStudents = students.filter(s => {
-    const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      s.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRisk = riskFilter === "all" || 
-                      (riskFilter === "at-risk" && s.at_risk) ||
-                      (riskFilter === "safe" && !s.at_risk);
-    return matchesSearch && matchesRisk;
-  });
+  const students = mockStudents;
+  const rooms = mockRooms;
+  const faculty = mockFaculty;
+  const users = mockUsers;
 
   const atRiskStudents = students.filter(s => s.at_risk);
   const totalStudents = students.length;
   const averageScore = Math.round(students.reduce((sum, s) => sum + s.average_score, 0) / students.length);
   const totalQuizzes = students.reduce((sum, s) => sum + s.quizzes_completed, 0);
 
-  if (!user) return null;
-
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <div className="w-64 bg-[#1B6B7B] text-white flex flex-col">
-        <div className="p-6 border-b border-white/10">
-          <h1 className="text-2xl font-bold">iCARE++</h1>
-          <p className="text-sm text-white/70">Faculty Portal</p>
+    <div className="max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Welcome back, Dean</h1>
+            <span className="px-2 sm:px-3 py-1 bg-[#1B6B7B]/10 text-[#1B6B7B] text-xs sm:text-sm font-medium rounded-full">
+              Admin
+            </span>
+          </div>
+          <p className="text-sm text-gray-500">
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} • Here's what's happening today
+          </p>
         </div>
-        
-        <nav className="flex-1 p-4">
-          <button
-            onClick={() => setActiveTab("overview")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 ${
-              activeTab === "overview" ? "bg-white/20" : "hover:bg-white/10"
-            }`}
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        <div className="hidden lg:flex items-center gap-2 sm:gap-3">
+          <button className="p-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+            <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
-            Overview
           </button>
-          <button
-            onClick={() => setActiveTab("students")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 ${
-              activeTab === "students" ? "bg-white/20" : "hover:bg-white/10"
-            }`}
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-            Students
-          </button>
-          <button
-            onClick={() => setActiveTab("analytics")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 ${
-              activeTab === "analytics" ? "bg-white/20" : "hover:bg-white/10"
-            }`}
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            Analytics
-          </button>
-          <button
-            onClick={() => setActiveTab("reports")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 ${
-              activeTab === "reports" ? "bg-white/20" : "hover:bg-white/10"
-            }`}
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Reports
-          </button>
-        </nav>
-        
-        <div className="p-4 border-t border-white/10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          <span className="px-3 py-2 sm:px-4 bg-gradient-to-r from-[#1B6B7B] to-[#145a63] text-white font-medium rounded-xl text-xs sm:text-sm shadow-lg shadow-[#1B6B7B]/20 whitespace-nowrap">
+            AY 2024-2025
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-[#1B6B7B]/10 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-[#1B6B7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
             </div>
-            <div>
-              <p className="font-medium">{user.name}</p>
-              <p className="text-xs text-white/70">{user.role}</p>
+            <span className="px-2 py-1 bg-[#1B6B7B]/10 text-[#1B6B7B] rounded-full text-xs font-medium">+12%</span>
+          </div>
+          <p className="text-4xl font-bold text-gray-800 mb-1">{totalStudents}</p>
+          <p className="text-gray-500 text-sm">Total Students</p>
+          <div className="mt-4">
+            <p className="text-xs text-gray-400 mb-2">Monthly Growth</p>
+            <div className="flex items-end gap-1 h-8">
+              {[60, 75, 70, 85, 100].map((v, i) => (
+                <div key={i} className="flex-1 bg-gray-100 rounded-t">
+                  <div className="w-full bg-[#1B6B7B] rounded-t" style={{ height: `${v}%` }} />
+                </div>
+              ))}
             </div>
           </div>
-          <button
-            onClick={() => {
-              logout();
-              router.push("/login");
-            }}
-            className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-white/10 hover:bg-white/20 rounded-lg transition-all"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Logout
-          </button>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-[#1B6B7B]/10 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-[#1B6B7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <span className="px-2 py-1 bg-rose-50 text-rose-600 rounded-full text-xs font-medium">Needs attention</span>
+          </div>
+          <p className="text-4xl font-bold text-gray-800 mb-1">{atRiskStudents.length}</p>
+          <p className="text-gray-500 text-sm">Students at Risk</p>
+          <div className="mt-4">
+            <p className="text-xs text-gray-400 mb-2">Risk Trend (5 weeks)</p>
+            <div className="h-8 flex items-end gap-1">
+              {[3, 4, 2, 3, 3].map((v, i) => (
+                <div key={i} className="flex-1 bg-gray-100 rounded-t">
+                  <div className="w-full bg-rose-400 rounded-t" style={{ height: `${(v / 4) * 100}%` }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-[#1B6B7B]/10 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-[#1B6B7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span className="px-2 py-1 bg-[#1B6B7B]/10 text-[#1B6B7B] rounded-full text-xs font-medium">+8%</span>
+          </div>
+          <p className="text-4xl font-bold text-gray-800 mb-1">{averageScore}%</p>
+          <p className="text-gray-500 text-sm">Average Score</p>
+          <div className="mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-gray-400">Passing threshold: 75%</span>
+              <span className={`text-xs font-medium ${averageScore >= 75 ? 'text-emerald-600' : 'text-rose-600'}`}>{averageScore >= 75 ? 'Above threshold' : 'Below threshold'}</span>
+            </div>
+            <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-[#1B6B7B] to-[#2a8a98] rounded-full" style={{ width: `${Math.min(averageScore, 100)}%` }} />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-[#1B6B7B]/10 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-[#1B6B7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </div>
+            <span className="px-2 py-1 bg-[#1B6B7B]/10 text-[#1B6B7B] rounded-full text-xs font-medium">Active</span>
+          </div>
+          <p className="text-4xl font-bold text-gray-800 mb-1">{totalQuizzes}</p>
+          <p className="text-gray-500 text-sm">Quizzes Completed</p>
+          <div className="mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-gray-400">Target: 100 quizzes</span>
+              <span className="text-xs font-medium text-[#1B6B7B]">{totalQuizzes >= 100 ? 'Target reached' : `${Math.round((totalQuizzes / 100) * 100)}% of target`}</span>
+            </div>
+            <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-[#1B6B7B] to-[#2a8a98] rounded-full" style={{ width: `${Math.min(totalQuizzes, 100)}%` }} />
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 p-6 overflow-auto">
-        {activeTab === "overview" && (
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Faculty Dashboard</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-gray-800">{totalStudents}</p>
-                    <p className="text-sm text-gray-500">Total Students</p>
-                  </div>
-                </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="md:col-span-2 lg:col-span-2 bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300 flex flex-col">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-semibold text-gray-900">Weekly Activity Heatmap</h3>
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <span>Less</span>
+              <div className="flex gap-1">
+                <div className="w-3 h-3 bg-[#1B6B7B]/10 rounded" />
+                <div className="w-3 h-3 bg-[#1B6B7B]/30 rounded" />
+                <div className="w-3 h-3 bg-[#1B6B7B]/50 rounded" />
+                <div className="w-3 h-3 bg-[#1B6B7B]/70 rounded" />
+                <div className="w-3 h-3 bg-[#1B6B7B] rounded" />
               </div>
-
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                    <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-gray-800">{atRiskStudents.length}</p>
-                    <p className="text-sm text-gray-500">At Risk</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                    <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-gray-800">{averageScore}%</p>
-                    <p className="text-sm text-gray-500">Avg. Score</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                    <svg className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-gray-800">{totalQuizzes}</p>
-                    <p className="text-sm text-gray-500">Quizzes Taken</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {atRiskStudents.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-                <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-800">Students Requiring Attention</h3>
-                  <span className="px-3 py-1 bg-red-100 text-red-700 text-sm rounded-full">
-                    {atRiskStudents.length} at risk
-                  </span>
-                </div>
-                <div className="divide-y divide-gray-100">
-                  {atRiskStudents.map((student) => (
-                    <div key={student.id} className="flex items-center justify-between p-4 hover:bg-gray-50">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-medium">
-                          {student.name.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-800">{student.name}</p>
-                          <p className="text-sm text-gray-500">{student.email}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium text-red-600">{student.average_score}%</p>
-                        <p className="text-sm text-gray-500">{student.quizzes_completed} quizzes</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === "students" && (
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Student Management</h2>
-            
-            <div className="flex items-center gap-4 mb-6">
-              <input
-                type="text"
-                placeholder="Search by name or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B6B7B]"
-              />
-              <select
-                value={riskFilter}
-                onChange={(e) => setRiskFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B6B7B]"
-              >
-                <option value="all">All Students</option>
-                <option value="at-risk">At Risk</option>
-                <option value="safe">Safe</option>
-              </select>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Student</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Quizzes</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Avg. Score</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Status</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Last Active</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {filteredStudents.map((student) => (
-                    <tr key={student.id} className="hover:bg-gray-50">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-sm font-medium">
-                            {student.name.charAt(0)}
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-800">{student.name}</p>
-                            <p className="text-xs text-gray-500">{student.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-gray-600">{student.quizzes_completed}</td>
-                      <td className="py-3 px-4">
-                        <span className={`font-medium ${
-                          student.average_score >= 70 ? "text-green-600" : "text-red-600"
-                        }`}>
-                          {student.average_score}%
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-1 text-sm rounded ${
-                          student.at_risk ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
-                        }`}>
-                          {student.at_risk ? "At Risk" : "Safe"}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-gray-600">{student.last_active}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <span>More</span>
             </div>
           </div>
-        )}
-
-        {activeTab === "analytics" && (
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Analytics Dashboard</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <h3 className="font-semibold text-gray-800 mb-4">Performance Distribution</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">90-100%</span>
-                    <div className="flex-1 mx-4 h-4 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-green-500 rounded-full" style={{ width: '25%' }} />
-                    </div>
-                    <span className="text-sm text-gray-500">25%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">70-89%</span>
-                    <div className="flex-1 mx-4 h-4 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-green-400 rounded-full" style={{ width: '37.5%' }} />
-                    </div>
-                    <span className="text-sm text-gray-500">37.5%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">50-69%</span>
-                    <div className="flex-1 mx-4 h-4 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-yellow-400 rounded-full" style={{ width: '25%' }} />
-                    </div>
-                    <span className="text-sm text-gray-500">25%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">&lt;50%</span>
-                    <div className="flex-1 mx-4 h-4 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-red-400 rounded-full" style={{ width: '12.5%' }} />
-                    </div>
-                    <span className="text-sm text-gray-500">12.5%</span>
-                  </div>
+          <div className="flex-1 grid grid-cols-4 sm:grid-cols-7 gap-1 sm:gap-2 auto-rows-fr overflow-x-auto">
+            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIdx) => (
+              <div key={day} className="flex flex-col">
+                <p className="text-xs font-medium text-gray-600 mb-1 text-center">{day}</p>
+                <div className="flex-1 flex flex-col gap-1">
+                  {['9AM', '12PM', '3PM', '6PM'].map((time) => {
+                    const intensity = Math.random();
+                    const bgClass = intensity > 0.75 ? 'bg-[#1B6B7B]' : intensity > 0.5 ? 'bg-[#1B6B7B]/70' : intensity > 0.25 ? 'bg-[#1B6B7B]/50' : 'bg-[#1B6B7B]/20';
+                    return (
+                      <div key={time} className={`flex-1 rounded ${bgClass}`} />
+                    );
+                  })}
                 </div>
               </div>
+            ))}
+          </div>
+          <div className="flex justify-between mt-2">
+            {['9AM', '12PM', '3PM', '6PM'].map(time => (
+              <span key={time} className="text-[10px] text-gray-400">{time}</span>
+            ))}
+          </div>
+        </div>
 
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <h3 className="font-semibold text-gray-800 mb-4">Quiz Completion by Category</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Vital Signs</span>
-                    <div className="flex-1 mx-4 h-4 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 rounded-full" style={{ width: '85%' }} />
-                    </div>
-                    <span className="text-sm text-gray-500">85%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Documentation</span>
-                    <div className="flex-1 mx-4 h-4 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 rounded-full" style={{ width: '72%' }} />
-                    </div>
-                    <span className="text-sm text-gray-500">72%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Clinical Decision</span>
-                    <div className="flex-1 mx-4 h-4 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 rounded-full" style={{ width: '58%' }} />
-                    </div>
-                    <span className="text-sm text-gray-500">58%</span>
-                  </div>
+        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
+          </div>
+          <div className="space-y-3">
+            <Link href="/admin/student-management" className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#1B6B7B]/5 transition-colors text-left group">
+              <div className="w-8 h-8 bg-[#1B6B7B]/10 rounded-lg flex items-center justify-center group-hover:bg-[#1B6B7B] group-hover:text-white transition-all">
+                <svg className="w-4 h-4 text-[#1B6B7B] group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+              </div>
+              <span className="text-sm font-medium text-gray-700 group-hover:text-[#1B6B7B]">Enroll Student</span>
+            </Link>
+            <Link href="/admin/reports" className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#1B6B7B]/5 transition-colors text-left group">
+              <div className="w-8 h-8 bg-[#1B6B7B]/10 rounded-lg flex items-center justify-center group-hover:bg-[#1B6B7B] group-hover:text-white transition-all">
+                <svg className="w-4 h-4 text-[#1B6B7B] group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <span className="text-sm font-medium text-gray-700 group-hover:text-[#1B6B7B]">Generate Report</span>
+            </Link>
+            <Link href="/admin/analytics" className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#1B6B7B]/5 transition-colors text-left group">
+              <div className="w-8 h-8 bg-[#1B6B7B]/10 rounded-lg flex items-center justify-center group-hover:bg-[#1B6B7B] group-hover:text-white transition-all">
+                <svg className="w-4 h-4 text-[#1B6B7B] group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <span className="text-sm font-medium text-gray-700 group-hover:text-[#1B6B7B]">View Analytics</span>
+            </Link>
+            <Link href="/admin/rooms" className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#1B6B7B]/5 transition-colors text-left group">
+              <div className="w-8 h-8 bg-[#1B6B7B]/10 rounded-lg flex items-center justify-center group-hover:bg-[#1B6B7B] group-hover:text-white transition-all">
+                <svg className="w-4 h-4 text-[#1B6B7B] group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <span className="text-sm font-medium text-gray-700 group-hover:text-[#1B6B7B]">Manage Rooms</span>
+            </Link>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+          </div>
+          <div className="space-y-4">
+            {[
+              { user: 'Emily Brown', action: 'completed quiz', time: '2 min ago', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+              { user: 'John Smith', action: 'logged in', time: '15 min ago', icon: 'M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1' },
+              { user: 'Dr. Maria Santos', action: 'added question', time: '1 hour ago', icon: 'M12 4v16m8-8H4' },
+              { user: 'Sarah Johnson', action: 'submitted feedback', time: '2 hours ago', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
+            ].map((activity, idx) => (
+              <div key={idx} className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-[#1B6B7B]/10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-[#1B6B7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={activity.icon} />
+                  </svg>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-gray-800">
+                    <span className="font-medium">{activity.user}</span> {activity.action}
+                  </p>
+                  <p className="text-xs text-gray-500">{activity.time}</p>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
-        )}
-
-        {activeTab === "reports" && (
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Reports & Export</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-[#1B6B7B] transition-colors text-left">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800">Competency Report</p>
-                    <p className="text-sm text-gray-500">Generate student competency PDF</p>
-                  </div>
-                </div>
-              </button>
-
-              <button className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-[#1B6B7B] transition-colors text-left">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                    <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800">At-Risk Students</p>
-                    <p className="text-sm text-gray-500">List students needing intervention</p>
-                  </div>
-                </div>
-              </button>
-
-              <button className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-[#1B6B7B] transition-colors text-left">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                    <svg className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800">Analytics Summary</p>
-                    <p className="text-sm text-gray-500">Performance analytics report</p>
-                  </div>
-                </div>
-              </button>
-
-              <button className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-[#1B6B7B] transition-colors text-left">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                    <svg className="w-6 h-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800">Activity Log</p>
-                    <p className="text-sm text-gray-500">System activity audit trail</p>
-                  </div>
-                </div>
-              </button>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
+        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-semibold text-gray-900">Room Capacity</h3>
+            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Occupancy %</span>
+          </div>
+          <p className="text-xs text-gray-500 mb-4">Current student occupancy per room</p>
+          <div className="space-y-4">
+            {rooms.slice(0, 4).map((room) => {
+              const percentage = (room.students_assigned / room.capacity) * 100;
+              const isFull = percentage >= 90;
+              return (
+                <div key={room.id} className="group">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">{room.name} <span className="text-gray-400 text-xs">Floor {room.floor}</span></span>
+                    <span className={`text-sm font-medium ${isFull ? 'text-rose-600' : 'text-gray-500'}`}>{room.students_assigned}/{room.capacity}</span>
+                  </div>
+                  <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${isFull ? 'bg-rose-500' : 'bg-gradient-to-r from-[#1B6B7B] to-[#2a8a98]'}`}
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-semibold text-gray-900">Quiz Performance Trend</h3>
+            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Last 12 Weeks</span>
+          </div>
+          <p className="text-xs text-gray-500 mb-4">Weekly quiz completion rate (%)</p>
+          <div className="h-36 flex items-end justify-between gap-2 px-2">
+            {[65, 78, 82, 71, 88, 95, 82, 76, 90, 85, 92, 88].map((val, idx) => (
+              <div key={idx} className="flex-1 flex flex-col items-center gap-2 group">
+                <div
+                  className="w-full bg-gradient-to-t from-[#1B6B7B] to-[#2a8a98] rounded-t transition-all duration-300 hover:opacity-80 group-hover:from-[#145a63]"
+                  style={{ height: `${val}%` }}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between mt-3 px-2">
+            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].slice(0, 4).map(m => (
+              <span key={m} className="text-xs text-gray-400">{m}</span>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-semibold text-gray-900">Student Distribution</h3>
+            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Overview</span>
+          </div>
+          <p className="text-xs text-gray-500 mb-4">Safe vs At-Risk breakdown</p>
+          <div className="flex items-center justify-center">
+            <div className="relative w-40 h-40">
+              {(() => {
+                const safeCount = students.filter(s => !s.at_risk).length;
+                const atRiskCount = students.filter(s => s.at_risk).length;
+                const total = students.length;
+                const circumference = 440;
+                const safeDash = (safeCount / total) * circumference;
+                const atRiskDash = (atRiskCount / total) * circumference;
+                return (
+                  <svg className="w-40 h-40 transform -rotate-90">
+                    <circle cx="80" cy="80" r="70" fill="none" stroke="#f3f4f6" strokeWidth="20" />
+                    <circle cx="80" cy="80" r="70" fill="none" stroke="#1B6B7B" strokeWidth="20" strokeDasharray={`${safeDash} ${circumference}`} strokeLinecap="round" className="transition-all duration-1000" />
+                    <circle cx="80" cy="80" r="70" fill="none" stroke="#ff2056" strokeWidth="20" strokeDasharray={`${atRiskDash} ${circumference}`} strokeDashoffset={`-${safeDash}`} strokeLinecap="round" className="transition-all duration-1000" />
+                  </svg>
+                );
+              })()}
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <p className="text-3xl font-bold text-gray-800">{students.length}</p>
+                <p className="text-sm text-gray-500">Students</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-center gap-6 mt-4">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-[#1B6B7B] rounded-full" />
+              <span className="text-sm text-gray-600">Safe: {students.filter(s => !s.at_risk).length}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-rose-500 rounded-full" />
+              <span className="text-sm text-gray-600">At Risk: {students.filter(s => s.at_risk).length}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <Link href="/admin/rooms" className="cursor-pointer">
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300 cursor-pointer group">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#1B6B7B]/10 group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-6 h-6 text-[#1B6B7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-gray-800">{rooms.filter(r => r.status === 'active').length}</p>
+                <p className="text-sm text-gray-500 font-medium">Active Rooms</p>
+              </div>
+            </div>
+          </div>
+        </Link>
+        <Link href="/admin/faculty" className="cursor-pointer">
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300 cursor-pointer group">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#1B6B7B]/10 group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-6 h-6 text-[#1B6B7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-gray-800">{faculty.filter(f => f.status === 'active').length}</p>
+                <p className="text-sm text-gray-500 font-medium">Active Faculty</p>
+              </div>
+            </div>
+          </div>
+        </Link>
+        <Link href="/admin/users" className="cursor-pointer">
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300 cursor-pointer group">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#1B6B7B]/10 group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-6 h-6 text-[#1B6B7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-gray-800">{users.filter(u => u.status === 'active').length}</p>
+                <p className="text-sm text-gray-500 font-medium">Active Users</p>
+              </div>
+            </div>
+          </div>
+        </Link>
+        <Link href="/admin/reports" className="cursor-pointer">
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300 cursor-pointer group">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#1B6B7B]/10 group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-6 h-6 text-[#1B6B7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-gray-800">4</p>
+                <p className="text-sm text-gray-500 font-medium">Report Types</p>
+              </div>
+            </div>
+          </div>
+        </Link>
+      </div>
+
+      {atRiskStudents.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300 overflow-hidden">
+          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center">
+                <svg className="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Students Requiring Attention</h3>
+                <p className="text-sm text-gray-500">{atRiskStudents.length} students at risk</p>
+              </div>
+            </div>
+            <Link
+              href="/admin/student-management"
+              className="text-rose-600 hover:text-rose-700 font-medium flex items-center gap-2 px-4 py-2 bg-rose-50 rounded-xl hover:bg-rose-100 transition-colors"
+            >
+              View All
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {atRiskStudents.map((student) => (
+              <div key={student.id} className="flex items-center justify-between p-5 hover:bg-gray-50 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-rose-50 rounded-full flex items-center justify-center text-rose-600 font-bold text-lg">
+                    {student.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-800">{student.name}</p>
+                    <p className="text-sm text-gray-500">{student.email}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-6">
+                  <div className="text-right">
+                    <p className="font-bold text-rose-600 text-lg">{student.average_score}%</p>
+                    <p className="text-sm text-gray-500">{student.quizzes_completed} quizzes</p>
+                  </div>
+                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 hover:bg-rose-50 hover:text-rose-600 cursor-pointer transition-colors">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
