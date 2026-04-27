@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 interface StudentPerformance {
   id: string;
@@ -33,32 +33,110 @@ const FilterSelect = ({ value, onChange, options }: { value: string; onChange: (
   </select>
 );
 
+const EnrollStudentModal = ({ isOpen, onClose, onEnroll }: { isOpen: boolean; onClose: () => void; onEnroll: (student: StudentPerformance) => void }) => {
+  const [formData, setFormData] = useState({ name: "", email: "" });
+  const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+
+  const validate = () => {
+    const newErrors: { name?: string; email?: string } = {};
+    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = "Invalid email format";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    onEnroll({
+      id: Date.now().toString(),
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      quizzes_completed: 0,
+      average_score: 0,
+      at_risk: false,
+      last_active: "Today"
+    });
+    setFormData({ name: "", email: "" });
+    setErrors({});
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="text-xl font-bold text-gray-900">Enroll New Student</h2>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              className={`w-full px-4 py-2.5 bg-white border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B6B7B]/50 focus:border-[#1B6B7B] transition-all text-gray-700 placeholder:text-gray-400 ${errors.name ? 'border-rose-400' : 'border-gray-200'}`}
+              placeholder="Enter student's full name"
+            />
+            {errors.name && <p className="mt-1 text-sm text-rose-500">{errors.name}</p>}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
+              className={`w-full px-4 py-2.5 bg-white border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B6B7B]/50 focus:border-[#1B6B7B] transition-all text-gray-700 placeholder:text-gray-400 ${errors.email ? 'border-rose-400' : 'border-gray-200'}`}
+              placeholder="student@icare.edu"
+            />
+            {errors.email && <p className="mt-1 text-sm text-rose-500">{errors.email}</p>}
+          </div>
+          <div className="flex items-center gap-3 pt-2">
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors">
+              Cancel
+            </button>
+            <button type="submit" className="flex-1 px-4 py-2.5 bg-[#1B6B7B] text-white font-medium rounded-xl hover:bg-[#145a63] hover:shadow-lg transition-all">
+              Enroll Student
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function StudentManagementClient() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [riskFilter, setRiskFilter] = useState("all");
-  const [sortField, setSortField] = useState<'name' | 'quizzes_completed' | 'average_score' | 'last_active'>('name');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [students, setStudents] = useState<StudentPerformance[]>(mockStudents);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [sortBy, setSortBy] = useState("name");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
 
-  const students = mockStudents;
+  const handleEnrollStudent = useCallback((newStudent: StudentPerformance) => {
+    setStudents(prev => [...prev, newStudent]);
+  }, []);
 
-  const filteredStudents = students.filter(s => {
-    const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRisk = riskFilter === "all" ||
-      (riskFilter === "at-risk" && s.at_risk) ||
-      (riskFilter === "safe" && !s.at_risk);
-    return matchesSearch && matchesRisk;
+  const filteredStudents = students.filter(student => {
+    const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         student.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFilter = filterStatus === "all" ||
+                         (filterStatus === "at-risk" && student.at_risk) ||
+                         (filterStatus === "safe" && !student.at_risk);
+    return matchesSearch && matchesFilter;
   }).sort((a, b) => {
     let comparison = 0;
-    if (sortField === 'name') {
-      comparison = a.name.localeCompare(b.name);
-    } else if (sortField === 'quizzes_completed') {
-      comparison = a.quizzes_completed - b.quizzes_completed;
-    } else if (sortField === 'average_score') {
-      comparison = a.average_score - b.average_score;
-    } else if (sortField === 'last_active') {
-      comparison = a.last_active.localeCompare(b.last_active);
-    }
+    if (sortBy === "name") comparison = a.name.localeCompare(b.name);
+    else if (sortBy === "score") comparison = a.average_score - b.average_score;
+    else if (sortBy === "quizzes") comparison = a.quizzes_completed - b.quizzes_completed;
     return sortDirection === 'asc' ? comparison : -comparison;
   });
 
@@ -125,7 +203,7 @@ export default function StudentManagementClient() {
       </div>
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-6">
-        <button className="flex items-center justify-center gap-2 px-4 py-3 bg-[#1B6B7B] text-white font-medium rounded-xl hover:bg-[#145a63] hover:shadow-lg transition-all duration-300">
+        <button onClick={() => setIsEnrollModalOpen(true)} className="flex items-center justify-center gap-2 px-4 py-3 bg-[#1B6B7B] text-white font-medium rounded-xl hover:bg-[#145a63] hover:shadow-lg transition-all duration-300">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
           </svg>
@@ -139,14 +217,14 @@ export default function StudentManagementClient() {
           <input
             type="text"
             placeholder="Search by name or email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B6B7B]/50 focus:border-[#1B6B7B] transition-all placeholder:text-gray-400 text-gray-700"
           />
         </div>
         <FilterSelect
-          value={riskFilter}
-          onChange={setRiskFilter}
+          value={filterStatus}
+          onChange={setFilterStatus}
           options={[
             { value: 'all', label: 'All Students' },
             { value: 'at-risk', label: 'At Risk' },
@@ -161,9 +239,9 @@ export default function StudentManagementClient() {
             <thead className="bg-gray-50/50 border-b border-gray-200">
               <tr>
                 <th className="text-left py-4 px-4 sm:px-6 font-semibold text-gray-600">
-                  <button onClick={() => { setSortField('name'); setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc'); }} className="flex items-center gap-1 hover:text-[#1B6B7B] transition-colors">
+                  <button onClick={() => { setSortBy('name'); setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc'); }} className="flex items-center gap-1 hover:text-[#1B6B7B] transition-colors">
                     Student
-                    {sortField === 'name' && (
+                    {sortBy === 'name' && (
                       <svg className={`w-4 h-4 ${sortDirection === 'asc' ? '' : 'rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                       </svg>
@@ -171,9 +249,9 @@ export default function StudentManagementClient() {
                   </button>
                 </th>
                 <th className="text-left py-4 px-4 sm:px-6 font-semibold text-gray-600">
-                  <button onClick={() => { setSortField('quizzes_completed'); setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc'); }} className="flex items-center gap-1 hover:text-[#1B6B7B] transition-colors">
+                  <button onClick={() => { setSortBy('quizzes_completed'); setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc'); }} className="flex items-center gap-1 hover:text-[#1B6B7B] transition-colors">
                     Quizzes
-                    {sortField === 'quizzes_completed' && (
+                    {sortBy === 'quizzes_completed' && (
                       <svg className={`w-4 h-4 ${sortDirection === 'asc' ? '' : 'rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                       </svg>
@@ -181,9 +259,9 @@ export default function StudentManagementClient() {
                   </button>
                 </th>
                 <th className="text-left py-4 px-4 sm:px-6 font-semibold text-gray-600">
-                  <button onClick={() => { setSortField('average_score'); setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc'); }} className="flex items-center gap-1 hover:text-[#1B6B7B] transition-colors">
+                  <button onClick={() => { setSortBy('average_score'); setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc'); }} className="flex items-center gap-1 hover:text-[#1B6B7B] transition-colors">
                     Avg. Score
-                    {sortField === 'average_score' && (
+                    {sortBy === 'average_score' && (
                       <svg className={`w-4 h-4 ${sortDirection === 'asc' ? '' : 'rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                       </svg>
@@ -192,9 +270,9 @@ export default function StudentManagementClient() {
                 </th>
                 <th className="text-left py-4 px-4 sm:px-6 font-semibold text-gray-600">Status</th>
                 <th className="text-left py-4 px-4 sm:px-6 font-semibold text-gray-600 hidden sm:table-cell">
-                  <button onClick={() => { setSortField('last_active'); setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc'); }} className="flex items-center gap-1 hover:text-[#1B6B7B] transition-colors">
+                  <button onClick={() => { setSortBy('last_active'); setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc'); }} className="flex items-center gap-1 hover:text-[#1B6B7B] transition-colors">
                     Last Active
-                    {sortField === 'last_active' && (
+                    {sortBy === 'last_active' && (
                       <svg className={`w-4 h-4 ${sortDirection === 'asc' ? '' : 'rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                       </svg>
@@ -245,6 +323,7 @@ export default function StudentManagementClient() {
           </table>
         </div>
       </div>
+      <EnrollStudentModal isOpen={isEnrollModalOpen} onClose={() => setIsEnrollModalOpen(false)} onEnroll={handleEnrollStudent} />
     </div>
   );
 }

@@ -42,10 +42,10 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated()) {
-      const user = getCurrentUser();
-      if (user) {
-        router.push(user.role === 'student' ? '/dashboard' : '/admin');
-      }
+const user = getCurrentUser();
+        if (user) {
+          router.push(user.role === 'student' ? '/dashboard' : user.role === 'faculty' ? '/faculty' : '/admin');
+        }
     }
   }, [router]);
 
@@ -59,7 +59,7 @@ export default function LoginPage() {
 
       if (result) {
         const user = result.user as User;
-        router.push(user.role === 'student' ? '/dashboard' : '/admin');
+        router.push(user.role === 'student' ? '/dashboard' : user.role === 'faculty' ? '/faculty' : '/admin');
       } else {
         setError("Invalid email or password");
       }
