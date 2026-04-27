@@ -1,0 +1,250 @@
+"use client";
+
+import { useState } from "react";
+
+interface StudentPerformance {
+  id: string;
+  name: string;
+  email: string;
+  quizzes_completed: number;
+  average_score: number;
+  at_risk: boolean;
+  last_active: string;
+}
+
+const mockStudents: StudentPerformance[] = [
+  { id: "1", name: "John Smith", email: "john@icare.edu", quizzes_completed: 8, average_score: 88, at_risk: false, last_active: "Today" },
+  { id: "2", name: "Sarah Johnson", email: "sarah@icare.edu", quizzes_completed: 6, average_score: 75, at_risk: false, last_active: "Yesterday" },
+  { id: "3", name: "Mike Williams", email: "mike@icare.edu", quizzes_completed: 3, average_score: 45, at_risk: true, last_active: "3 days ago" },
+  { id: "4", name: "Emily Brown", email: "emily@icare.edu", quizzes_completed: 9, average_score: 92, at_risk: false, last_active: "Today" },
+  { id: "5", name: "David Lee", email: "david@icare.edu", quizzes_completed: 5, average_score: 62, at_risk: true, last_active: "2 days ago" },
+  { id: "6", name: "Lisa Garcia", email: "lisa@icare.edu", quizzes_completed: 7, average_score: 81, at_risk: false, last_active: "Today" },
+  { id: "7", name: "James Wilson", email: "james@icare.edu", quizzes_completed: 4, average_score: 55, at_risk: true, last_active: "1 week ago" },
+  { id: "8", name: "Anna Martinez", email: "anna@icare.edu", quizzes_completed: 8, average_score: 85, at_risk: false, last_active: "Today" },
+];
+
+const FilterSelect = ({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) => (
+  <select
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1B6B7B]/50 focus:border-[#1B6B7B] transition-all cursor-pointer"
+  >
+    {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+  </select>
+);
+
+export default function StudentManagementClient() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [riskFilter, setRiskFilter] = useState("all");
+  const [sortField, setSortField] = useState<'name' | 'quizzes_completed' | 'average_score' | 'last_active'>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  const students = mockStudents;
+
+  const filteredStudents = students.filter(s => {
+    const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRisk = riskFilter === "all" ||
+      (riskFilter === "at-risk" && s.at_risk) ||
+      (riskFilter === "safe" && !s.at_risk);
+    return matchesSearch && matchesRisk;
+  }).sort((a, b) => {
+    let comparison = 0;
+    if (sortField === 'name') {
+      comparison = a.name.localeCompare(b.name);
+    } else if (sortField === 'quizzes_completed') {
+      comparison = a.quizzes_completed - b.quizzes_completed;
+    } else if (sortField === 'average_score') {
+      comparison = a.average_score - b.average_score;
+    } else if (sortField === 'last_active') {
+      comparison = a.last_active.localeCompare(b.last_active);
+    }
+    return sortDirection === 'asc' ? comparison : -comparison;
+  });
+
+  return (
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Management</h1>
+        <p className="text-gray-500">View and manage nursing student accounts, track performance, and identify at-risk students</p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-[#1B6B7B]/10 rounded-xl flex items-center justify-center">
+              <svg className="w-5 h-5 text-[#1B6B7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-800">{students.length}</p>
+              <p className="text-xs text-gray-500">Total Students</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
+              <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-800">{students.filter(s => !s.at_risk).length}</p>
+              <p className="text-xs text-gray-500">Safe Students</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center">
+              <svg className="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-800">{students.filter(s => s.at_risk).length}</p>
+              <p className="text-xs text-gray-500">At Risk</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-[#1B6B7B]/10 rounded-xl flex items-center justify-center">
+              <svg className="w-5 h-5 text-[#1B6B7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-800">{students.reduce((sum, s) => sum + s.quizzes_completed, 0)}</p>
+              <p className="text-xs text-gray-500">Total Quizzes</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-6">
+        <button className="flex items-center justify-center gap-2 px-4 py-3 bg-[#1B6B7B] text-white font-medium rounded-xl hover:bg-[#145a63] hover:shadow-lg transition-all duration-300">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+          </svg>
+          <span className="hidden sm:inline">Enroll Student</span>
+          <span className="sm:hidden">Enroll</span>
+        </button>
+        <div className="flex-1 relative">
+          <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B6B7B]/50 focus:border-[#1B6B7B] transition-all placeholder:text-gray-400 text-gray-700"
+          />
+        </div>
+        <FilterSelect
+          value={riskFilter}
+          onChange={setRiskFilter}
+          options={[
+            { value: 'all', label: 'All Students' },
+            { value: 'at-risk', label: 'At Risk' },
+            { value: 'safe', label: 'Safe' },
+          ]}
+        />
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50/50 border-b border-gray-200">
+              <tr>
+                <th className="text-left py-4 px-4 sm:px-6 font-semibold text-gray-600">
+                  <button onClick={() => { setSortField('name'); setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc'); }} className="flex items-center gap-1 hover:text-[#1B6B7B] transition-colors">
+                    Student
+                    {sortField === 'name' && (
+                      <svg className={`w-4 h-4 ${sortDirection === 'asc' ? '' : 'rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                      </svg>
+                    )}
+                  </button>
+                </th>
+                <th className="text-left py-4 px-4 sm:px-6 font-semibold text-gray-600">
+                  <button onClick={() => { setSortField('quizzes_completed'); setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc'); }} className="flex items-center gap-1 hover:text-[#1B6B7B] transition-colors">
+                    Quizzes
+                    {sortField === 'quizzes_completed' && (
+                      <svg className={`w-4 h-4 ${sortDirection === 'asc' ? '' : 'rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                      </svg>
+                    )}
+                  </button>
+                </th>
+                <th className="text-left py-4 px-4 sm:px-6 font-semibold text-gray-600">
+                  <button onClick={() => { setSortField('average_score'); setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc'); }} className="flex items-center gap-1 hover:text-[#1B6B7B] transition-colors">
+                    Avg. Score
+                    {sortField === 'average_score' && (
+                      <svg className={`w-4 h-4 ${sortDirection === 'asc' ? '' : 'rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                      </svg>
+                    )}
+                  </button>
+                </th>
+                <th className="text-left py-4 px-4 sm:px-6 font-semibold text-gray-600">Status</th>
+                <th className="text-left py-4 px-4 sm:px-6 font-semibold text-gray-600 hidden sm:table-cell">
+                  <button onClick={() => { setSortField('last_active'); setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc'); }} className="flex items-center gap-1 hover:text-[#1B6B7B] transition-colors">
+                    Last Active
+                    {sortField === 'last_active' && (
+                      <svg className={`w-4 h-4 ${sortDirection === 'asc' ? '' : 'rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                      </svg>
+                    )}
+                  </button>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filteredStudents.map((student) => (
+                <tr key={student.id} className="hover:bg-gray-50/50 transition-colors group">
+                  <td className="py-4 px-4 sm:px-6">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${student.at_risk ? 'bg-rose-50 text-rose-600' : 'bg-[#1B6B7B]/10 text-[#1B6B7B]'}`}>
+                        {student.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-800">{student.name}</p>
+                        <p className="text-sm text-gray-500">{student.email}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-4 px-4 sm:px-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-16 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-[#1B6B7B] rounded-full" style={{ width: `${(student.quizzes_completed / 10) * 100}%` }} />
+                      </div>
+                      <span className="text-gray-600 font-medium text-sm">{student.quizzes_completed}</span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-4 sm:px-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-12 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${student.average_score >= 70 ? 'bg-[#1B6B7B]' : 'bg-rose-500'}`} style={{ width: `${student.average_score}%` }} />
+                      </div>
+                      <span className={`font-semibold text-sm ${student.average_score >= 70 ? 'text-[#1B6B7B]' : 'text-rose-600'}`}>{student.average_score}%</span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-4 sm:px-6">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${student.at_risk ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                      {student.at_risk ? '⚠ At Risk' : '✓ Safe'}
+                    </span>
+                  </td>
+                  <td className="py-4 px-4 sm:px-6 text-gray-500 text-sm hidden sm:table-cell">{student.last_active}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}

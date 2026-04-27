@@ -1,3 +1,7 @@
+export const metadata = {
+  title: "Analytics | iCARE++",
+};
+
 export default function AnalyticsPage() {
   return (
     <div className="max-w-7xl mx-auto">
