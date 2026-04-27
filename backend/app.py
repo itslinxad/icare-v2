@@ -5,6 +5,9 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 
+# Import faculty routes
+from routes_faculty import register_faculty_routes
+
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
@@ -506,5 +509,7 @@ def get_recommendations():
 
 
 if __name__ == "__main__":
+    # Register faculty routes
+    register_faculty_routes(app)
     print("Starting iCARE++ Backend...")
     app.run(debug=True, port=5000)
