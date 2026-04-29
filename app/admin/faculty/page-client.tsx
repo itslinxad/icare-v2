@@ -90,58 +90,76 @@ const filteredFaculty = faculty.filter(f => facultyFilter === "all" || f.status 
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Faculty Management</h1>
-        <p className="text-gray-500">Manage faculty members, track their specializations, and monitor student assignments</p>
+      {/* Header Card */}
+      <div className="bg-white rounded-3xl p-6 mb-6 shadow-lg shadow-gray-200/50 border border-gray-100">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="inline-flex items-center gap-2 bg-[#1B6B7B]/10 px-3 py-1.5 rounded-full mb-3">
+              <svg className="w-4 h-4 text-[#1B6B7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="text-xs font-semibold text-[#1B6B7B]">Faculty Management</span>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-1">Faculty Management</h1>
+            <p className="text-gray-500 text-sm">Manage faculty members and monitor assignments</p>
+          </div>
+          <div className="w-16 h-16 bg-gradient-to-br from-[#1B6B7B] to-[#145a63] rounded-2xl flex items-center justify-center shadow-lg shadow-[#1B6B7B]/30">
+            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+        </div>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#1B6B7B]/10 rounded-xl flex items-center justify-center">
-              <svg className="w-5 h-5 text-[#1B6B7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="bg-white rounded-2xl p-5 shadow-lg shadow-gray-200/50 border border-gray-100 hover:scale-[1.02] hover:shadow-xl transition-all duration-300">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#1B6B7B] to-[#145a63] rounded-xl flex items-center justify-center shadow-lg shadow-[#1B6B7B]/20">
+              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-800">{faculty.length}</p>
-              <p className="text-xs text-gray-500">Total Faculty</p>
+              <p className="text-3xl font-bold text-gray-800">{faculty.length}</p>
+              <p className="text-xs text-gray-500 font-medium">Total Faculty</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-              <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="bg-white rounded-2xl p-5 shadow-lg shadow-gray-200/50 border border-gray-100 hover:scale-[1.02] hover:shadow-xl transition-all duration-300">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/20">
+              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-800">{faculty.filter(f => f.status === 'active').length}</p>
-              <p className="text-xs text-gray-500">Active Faculty</p>
+              <p className="text-3xl font-bold text-gray-800">{faculty.filter(f => f.status === 'active').length}</p>
+              <p className="text-xs text-gray-500 font-medium">Active Faculty</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-lg hover:border-[#1B6B7B]/30 transition-all duration-300">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-              <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="bg-white rounded-2xl p-5 shadow-lg shadow-gray-200/50 border border-gray-100 hover:scale-[1.02] hover:shadow-xl transition-all duration-300">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
+              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-800">{faculty.reduce((sum, f) => sum + f.student_count, 0)}</p>
-              <p className="text-xs text-gray-500">Assigned Students</p>
+              <p className="text-3xl font-bold text-gray-800">{faculty.reduce((sum, f) => sum + f.student_count, 0)}</p>
+              <p className="text-xs text-gray-500 font-medium">Assigned Students</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
+      {/* Filter & Actions */}
+      <div className="flex items-center justify-between mb-6 bg-white p-4 rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100">
         <select
           value={facultyFilter}
           onChange={(e) => setFacultyFilter(e.target.value)}
-          className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1B6B7B]/50 focus:border-[#1B6B7B] transition-all cursor-pointer"
+          className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1B6B7B]/50 focus:border-[#1B6B7B] transition-all cursor-pointer font-medium"
         >
           <option value="all">All Faculty</option>
           <option value="active">Active</option>
@@ -149,7 +167,7 @@ const filteredFaculty = faculty.filter(f => facultyFilter === "all" || f.status 
         </select>
         <button 
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#1B6B7B] text-white font-medium rounded-xl hover:bg-[#145a63] hover:shadow-lg transition-all duration-300"
+          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#1B6B7B] to-[#145a63] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-[#1B6B7B]/30 transition-all duration-300"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
