@@ -1,63 +1,78 @@
-# iCARE++
+# iCARE++ Web
 
-A scalable machine learning-driven clinical competency assessment and adaptive learning system for nursing students at Batangas State University – TNEU ARASOF Nasugbu.
+A machine learning-driven clinical competency assessment and adaptive learning system for nursing students at Batangas State University – TNEU ARASOF Nasugbu.
 
 ## Prerequisites
 
-- Node.js 18+
-- npm or yarn
-- Backend API (optional for development)
+- **Node.js** 18.x or later
+- **npm** 9.x or later
+- Optional: **Backend API** for full functionality
 
-## Getting Started
+## Installation
 
-1. **Install dependencies:**
+1. Navigate to the project directory:
+   ```bash
+   cd icare-web
+   ```
 
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-2. **Configure environment:**
-   Copy `.env.local` and update variables:
-
+3. Configure environment variables:
+   Copy `.env.local` and update as needed:
    ```bash
    NEXT_PUBLIC_API_URL=http://localhost:5000/api
    ```
 
-3. **Run development server:**
+## Development
 
-   ```bash
-   npm run dev
-   ```
+Start the development server:
 
-4. **Open in browser:**
-   <http://localhost:3000>
+```bash
+npm run dev
+```
+
+Open in browser: <http://localhost:3000>
+
+## Available Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint to check code quality |
 
 ## Project Structure
 
 ```
-app/
-├── admin/           # Dean/Super Admin portal
-│   ├── page.tsx           # Overview dashboard
-│   ├── analytics/         # Cohort analytics
-│   ├── student-management/# Student management
-│   ├── rooms/             # Room management
-│   ├── faculty/           # Faculty management
-│   ├── users/             # User accounts
-│   ├── reports/           # Reports & audit logs
-│   └── settings/           # Dean settings
-├── login/           # Authentication
-├── dashboard/       # Student dashboard
-├── patients/        # Patient management
-├── quizzes/         # Adaptive quizzes
-├── performance/     # Performance tracking
-└── lib/api.ts      # API utilities
+icare-web/
+├── app/                    # Next.js App Router pages
+│   ├── admin/              # Dean/Super Admin portal
+│   │   ├── analytics/      # Cohort analytics
+│   │   ├── student-management/  # Student management
+│   │   ├── rooms/          # Room management
+│   │   ├── faculty/        # Faculty management
+│   │   ├── users/          # User accounts
+│   │   ├── reports/        # Reports & audit logs
+│   │   └── settings/       # Admin settings
+│   ├── login/              # Authentication
+│   ├── dashboard/          # Student dashboard
+│   ├── patients/           # Patient management
+│   ├── quizzes/            # Adaptive quizzes
+│   └── performance/        # Performance tracking
+├── backend/                # Python backend (if applicable)
+├── public/                 # Static assets
+└── package.json           # Dependencies
 ```
 
 ## User Roles
 
 | Role | Portal | Access |
 |------|--------|--------|
-| **Super Admin (Dean)** | `/admin` | Full system, analytics, user management, data privacy |
+| **Super Admin (Dean)** | `/admin` | Full system, analytics, user management |
 | **Faculty** | `/admin/faculty` | Student monitoring, grading, room oversight |
 | **Student** | `/dashboard` | Clinical tasks, quizzes, patient monitoring |
 
@@ -75,16 +90,35 @@ app/
 - **Safe/Positive**: Emerald
 - **At-Risk/Warning**: Rose
 
-## Commands
+## Key Technologies
 
+- **Next.js 16** - React framework
+- **React 19** - UI library
+- **TypeScript** - Type safety
+- **Tailwind CSS 4** - Styling
+
+## Troubleshooting
+
+### Port already in use
 ```bash
-npm run dev       # Start development server
-npm run build    # Build for production
-npm run lint     # Run ESLint
-npm run typecheck # Run TypeScript check
+# Kill process on port 3000
+lsof -ti:3000 | xargs kill -9
+# Or run on different port
+npm run dev -- -p 3001
 ```
 
-## Documentation
+### Build errors
+```bash
+# Clear Next.js cache
+rm -rf .next
+npm run build
+```
 
+### TypeScript errors
+Check `tsconfig.json` and ensure all dependencies are installed.
+
+## Learn More
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Tailwind CSS](https://tailwindcss.com/docs)
 - [Codebase Summary](./CODEBASE_SUMMARY.md) - Technical overview
-
