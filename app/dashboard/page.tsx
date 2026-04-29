@@ -2,7 +2,18 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { logout, isAuthenticated, getCurrentUser, User } from "../lib/api";
+import { logout, isAuthenticated, getCurrentUser, User, fetchStudentScenarioAssignments } from "../lib/api";
+
+interface ScenarioAssignment {
+  id: string;
+  scenario_id: string;
+  scenario_title: string;
+  assigned_at: string;
+  deadline: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'overdue';
+  required: boolean;
+  score?: number;
+}
 
 interface Patient {
   id: string;
@@ -86,6 +97,7 @@ const menuItems = [
   { icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6", label: "Dashboard", path: "/dashboard" },
   { icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", label: "Patients", path: "/patients" },
   { icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4", label: "Quizzes", path: "/quizzes" },
+  { icon: "M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.414 1.414.586 3.414-1.414 3.414H12m8 0h2a2 2 0 002-2v-4a2 2 0 00-2-2h-2", label: "Scenarios", path: "/scenarios" },
   { icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z", label: "Performance", path: "/performance" },
 ];
 
@@ -95,6 +107,7 @@ export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [patients] = useState<Patient[]>(mockPatients);
   const [quizzes] = useState<Quiz[]>(mockQuizzes);
+  const [scenarioAssignments, setScenarioAssignments] = useState<ScenarioAssignment[]>([]);
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -102,8 +115,14 @@ export default function StudentDashboard() {
       router.push("/login");
     } else {
       setUser(currentUser);
+      loadScenarioAssignments(currentUser.id);
     }
   }, [router]);
+
+  const loadScenarioAssignments = async (studentId: string) => {
+    const assignments = await fetchStudentScenarioAssignments(studentId);
+    setScenarioAssignments(assignments);
+  };
 
   const handleLogout = () => {
     logout();
@@ -145,26 +164,30 @@ export default function StudentDashboard() {
               onClick={() => {
                 if (item.label === "Patients") setActiveTab("patients");
                 else if (item.label === "Quizzes") setActiveTab("quizzes");
+                else if (item.label === "Scenarios") setActiveTab("scenarios");
                 else if (item.label === "Performance") setActiveTab("performance");
                 else setActiveTab("dashboard");
               }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all ${
                 activeTab === item.label.toLowerCase() || 
                 (item.label === "Patients" && activeTab === "patients") ||
-                (item.label === "Quizzes" && activeTab === "quizzes") ||
-                (item.label === "Performance" && activeTab === "performance")
-                  ? "bg-white/20"
-                  : "hover:bg-white/10"
+(item.label === "Quizzes" && activeTab === "quizzes") ||
+                 (item.label === "Performance" && activeTab === "performance")
               }`}
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
               </svg>
               {item.label}
+              {item.label === "Scenarios" && scenarioAssignments.length > 0 && (
+                <span className="ml-auto bg-white/30 text-xs px-2 py-0.5 rounded-full">
+                  {scenarioAssignments.filter(a => a.status !== 'completed').length}
+                </span>
+              )}
             </button>
           ))}
         </nav>
-        
+
         <div className="p-4 border-t border-white/10">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
@@ -400,6 +423,74 @@ export default function StudentDashboard() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {activeTab === "scenarios" && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center">
+                  <p className="text-4xl font-bold text-[#1B6B7B]">{scenarioAssignments.filter(a => a.status === 'pending').length}</p>
+                  <p className="text-gray-500 mt-2">Pending</p>
+                </div>
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center">
+                  <p className="text-4xl font-bold text-[#1B6B7B]">{scenarioAssignments.filter(a => a.status === 'in_progress').length}</p>
+                  <p className="text-gray-500 mt-2">In Progress</p>
+                </div>
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center">
+                  <p className="text-4xl font-bold text-emerald-600">{scenarioAssignments.filter(a => a.status === 'completed').length}</p>
+                  <p className="text-gray-500 mt-2">Completed</p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 className="font-semibold text-gray-800 mb-4">Assigned Scenarios</h3>
+                {scenarioAssignments.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No scenarios assigned yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {scenarioAssignments.map((assignment) => (
+                      <div key={assignment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                        <div>
+                          <h4 className="font-medium text-gray-800">{assignment.scenario_title}</h4>
+                          <div className="flex items-center gap-3 mt-1">
+                            <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                              assignment.status === 'completed' ? 'bg-green-100 text-green-700' :
+                              assignment.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
+                              assignment.status === 'overdue' ? 'bg-red-100 text-red-700' :
+                              'bg-gray-100 text-gray-600'
+                            }`}>
+                              {assignment.status.replace('_', ' ')}
+                            </span>
+                            {assignment.required && (
+                              <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">
+                                Required
+                              </span>
+                            )}
+                            <span className="text-xs text-gray-500">Due: {assignment.deadline}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {assignment.score !== undefined && (
+                            <span className={`text-lg font-bold ${
+                              assignment.score >= 80 ? 'text-emerald-600' :
+                              assignment.score >= 60 ? 'text-amber-600' : 'text-red-600'
+                            }`}>
+                              {assignment.score}%
+                            </span>
+                          )}
+                          <button 
+                            onClick={() => router.push(`/scenarios/${assignment.scenario_id}`)}
+                            className="px-4 py-2 bg-[#1B6B7B] text-white rounded-lg hover:bg-[#155663] transition-colors"
+                          >
+                            {assignment.status === 'completed' ? 'Review' : assignment.status === 'in_progress' ? 'Continue' : 'Start'}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

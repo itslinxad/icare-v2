@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { fetchFacultyStudentDetail, predictStudentRisk, FacultyStudent, fetchStudentScenarioHistory } from "../../../lib/api";
 
 interface PerformanceHistory {
   quiz_title: string;
@@ -22,42 +21,80 @@ interface ScenarioPerformanceRecord {
   completed_tasks: string[];
 }
 
+interface StudentData {
+  id: string;
+  name: string;
+  email: string;
+  program: string;
+  year: number;
+  average_score: number;
+  quiz_count: number;
+  last_activity: string;
+  risk_level: 'low' | 'medium' | 'high';
+}
+
+const mockStudent: StudentData = {
+  id: "1",
+  name: "John Smith",
+  email: "john@icare.edu",
+  program: "Bachelor of Science in Nursing",
+  year: 3,
+  average_score: 88,
+  quiz_count: 12,
+  last_activity: "Today",
+  risk_level: "low"
+};
+
+const mockPerformanceHistory: PerformanceHistory[] = [
+  { quiz_title: "Vital Signs Assessment", score: 90, date: "Today, 10:30 AM", time_taken: 10 },
+  { quiz_title: "Patient Documentation", score: 85, date: "Yesterday, 2:15 PM", time_taken: 15 },
+  { quiz_title: "Clinical Decision Making", score: 78, date: "Apr 24, 9:00 AM", time_taken: 20 },
+  { quiz_title: "Medication Administration", score: 92, date: "Apr 22, 3:30 PM", time_taken: 12 },
+  { quiz_title: "Emergency Response", score: 75, date: "Apr 20, 11:00 AM", time_taken: 18 },
+];
+
+const mockScenarioHistory: ScenarioPerformanceRecord[] = [
+  { id: "s1", scenario_title: "Patient with Chest Pain - ACS", score: 85, max_score: 100, completed_at: "Apr 25, 2024", time_taken: 1800, total_tasks: 8, completed_tasks: ["t1", "t2", "t3", "t4", "t5", "t6", "t7"] },
+  { id: "s2", scenario_title: "Diabetic Patient Emergency", score: 72, max_score: 100, completed_at: "Apr 20, 2024", time_taken: 2100, total_tasks: 8, completed_tasks: ["t1", "t2", "t3", "t4", "t5", "t6"] },
+];
+
+const mockCompetencies: Record<string, number> = {
+  vital_signs_monitoring: 92,
+  patient_assessment: 85,
+  iv_administration: 78,
+  clinical_documentation: 88,
+  emergency_response: 75,
+  medication_administration: 90,
+  communication_skills: 82,
+  critical_thinking: 79
+};
+
+const mockRiskPrediction = {
+  risk_level: "low",
+  confidence: 85,
+  factors: {
+    quiz_performance: true,
+    engagement: false,
+    completion_rate: false
+  },
+  recommendations: [
+    "Continue current study pattern",
+    "Consider mentoring other students"
+  ]
+};
+
 export default function StudentDetailClient() {
   const router = useRouter();
   const params = useParams();
   const studentId = params?.id as string;
   
-  const [student, setStudent] = useState<FacultyStudent | null>(null);
-  const [performanceHistory, setPerformanceHistory] = useState<PerformanceHistory[]>([]);
-  const [scenarioHistory, setScenarioHistory] = useState<ScenarioPerformanceRecord[]>([]);
-  const [competencies, setCompetencies] = useState<Record<string, number>>({});
-  const [riskPrediction, setRiskPrediction] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [student, setStudent] = useState<StudentData | null>(mockStudent);
+  const [performanceHistory] = useState<PerformanceHistory[]>(mockPerformanceHistory);
+  const [scenarioHistory] = useState<ScenarioPerformanceRecord[]>(mockScenarioHistory);
+  const [competencies] = useState<Record<string, number>>(mockCompetencies);
+  const [riskPrediction] = useState<any>(mockRiskPrediction);
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("performance");
-
-  useEffect(() => {
-    if (studentId) {
-      loadStudentData();
-    }
-  }, [studentId]);
-
-  const loadStudentData = async () => {
-    setLoading(true);
-    const data = await fetchFacultyStudentDetail(studentId);
-    if (data) {
-      setStudent(data.student);
-      setPerformanceHistory(data.performance_history);
-      setCompetencies(data.competencies);
-      
-      const prediction = await predictStudentRisk(studentId);
-      setRiskPrediction(prediction);
-    }
-    
-    const scenarios = await fetchStudentScenarioHistory(studentId);
-    setScenarioHistory(scenarios);
-    
-    setLoading(false);
-  };
 
   const getRiskColor = (risk: string) => {
     switch (risk) {
@@ -96,7 +133,7 @@ export default function StudentDetailClient() {
       <div className="flex flex-col items-center justify-center h-96">
         <p className="text-gray-500">Student not found</p>
         <button 
-          onClick={() => router.push('/faculty/students')}
+          onClick={() => router.push('/admin/student-management')}
           className="mt-4 px-4 py-2 text-[#1B6B7B] font-medium"
         >
           Back to Students
@@ -109,7 +146,7 @@ export default function StudentDetailClient() {
     <div className="max-w-7xl mx-auto">
       <div className="mb-6">
         <button 
-          onClick={() => router.push('/faculty/students')}
+          onClick={() => router.push('/admin/student-management')}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

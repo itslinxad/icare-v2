@@ -220,6 +220,44 @@ export interface SimulationScenario {
   created_at: string;
 }
 
+export interface ScenarioAssignment {
+  id: string;
+  scenario_id: string;
+  scenario_title: string;
+  student_id: string;
+  student_name: string;
+  assigned_at: string;
+  deadline: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'overdue';
+  required: boolean;
+  score?: number;
+  completed_at?: string;
+  time_taken?: number;
+}
+
+export interface ScenarioPerformance {
+  id: string;
+  student_id: string;
+  student_name: string;
+  scenario_id: string;
+  scenario_title: string;
+  score: number;
+  max_score: number;
+  time_taken: number;
+  completed_tasks: string[];
+  total_tasks: number;
+  completed_at: string;
+}
+
+export interface ScenarioTask {
+  id: string;
+  title: string;
+  description: string;
+  category: 'assessment' | 'intervention' | 'medication' | 'communication' | 'documentation';
+  points: number;
+  is_completed: boolean;
+}
+
 export interface FacultyNotification {
   id: string;
   title: string;
@@ -562,5 +600,85 @@ export async function getClinicalDecisionSupport(patientCase: any): Promise<any 
   } catch (error) {
     console.error('Get clinical support error:', error);
     return null;
+  }
+}
+
+export async function fetchScenarioAssignments(scenarioId?: string): Promise<ScenarioAssignment[]> {
+  const url = scenarioId 
+    ? `${API_URL}/faculty/scenario-assignments?scenario_id=${scenarioId}`
+    : `${API_URL}/faculty/scenario-assignments`;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.success ? data.assignments : [];
+  } catch (error) {
+    console.error('Fetch scenario assignments error:', error);
+    return [];
+  }
+}
+
+export async function assignScenarioToStudents(
+  scenarioId: string, 
+  studentIds: string[], 
+  deadline: string, 
+  required: boolean
+): Promise<ScenarioAssignment[]> {
+  try {
+    const response = await fetch(`${API_URL}/faculty/scenario-assignments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scenario_id: scenarioId, student_ids: studentIds, deadline, required }),
+    });
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.success ? data.assignments : [];
+  } catch (error) {
+    console.error('Assign scenario error:', error);
+    return [];
+  }
+}
+
+export async function fetchStudentScenarioAssignments(studentId: string): Promise<ScenarioAssignment[]> {
+  try {
+    const response = await fetch(`${API_URL}/students/${studentId}/scenario-assignments`);
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.success ? data.assignments : [];
+  } catch (error) {
+    console.error('Fetch student scenario assignments error:', error);
+    return [];
+  }
+}
+
+export async function submitScenarioPerformance(
+  scenarioId: string,
+  completedTasks: string[],
+  timeTaken: number
+): Promise<ScenarioPerformance | null> {
+  try {
+    const response = await fetch(`${API_URL}/students/scenario-performance`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scenario_id: scenarioId, completed_tasks: completedTasks, time_taken: timeTaken }),
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.success ? data.performance : null;
+  } catch (error) {
+    console.error('Submit scenario performance error:', error);
+    return null;
+  }
+}
+
+export async function fetchStudentScenarioHistory(studentId: string): Promise<ScenarioPerformance[]> {
+  try {
+    const response = await fetch(`${API_URL}/faculty/students/${studentId}/scenario-performance`);
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.success ? data.history : [];
+  } catch (error) {
+    console.error('Fetch student scenario history error:', error);
+    return [];
   }
 }

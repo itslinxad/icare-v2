@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface Faculty {
   id: string;
@@ -38,6 +39,7 @@ const mockStudents: Student[] = [
 ];
 
 export default function FacultyClient() {
+  const router = useRouter();
   const faculty = mockFaculty;
   const [facultyFilter, setFacultyFilter] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -53,7 +55,7 @@ export default function FacultyClient() {
     years_experience: 0,
   });
 
-  const filteredFaculty = faculty.filter(f => facultyFilter === "all" || f.status === facultyFilter);
+const filteredFaculty = faculty.filter(f => facultyFilter === "all" || f.status === facultyFilter);
 
   const handleAddFaculty = () => {
     if (newFaculty.name && newFaculty.email) {
@@ -63,13 +65,10 @@ export default function FacultyClient() {
     }
   };
 
-  const handleAssignStudents = () => {
-    if (selectedFaculty && selectedStudents.length > 0) {
-      alert(`Assigned ${selectedStudents.length} students to ${selectedFaculty.name} (mock)`);
-      setShowAssignModal(false);
-      setSelectedFaculty(null);
-      setSelectedStudents([]);
-    }
+  const handleAssignStudents = (facultyMember: Faculty) => {
+    setSelectedFaculty(facultyMember);
+    setSelectedStudents([]);
+    setShowAssignModal(true);
   };
 
   const toggleStudent = (studentId: string) => {
@@ -78,6 +77,15 @@ export default function FacultyClient() {
         ? prev.filter(id => id !== studentId)
         : [...prev, studentId]
     );
+  };
+
+  const handleSaveAssignments = () => {
+    if (selectedFaculty && selectedStudents.length > 0) {
+      alert(`Assigned ${selectedStudents.length} students to ${selectedFaculty.name} (mock)`);
+      setShowAssignModal(false);
+      setSelectedFaculty(null);
+      setSelectedStudents([]);
+    }
   };
 
   return (
@@ -189,10 +197,7 @@ export default function FacultyClient() {
                   </td>
                   <td className="py-4 px-6">
                     <button 
-                      onClick={() => {
-                        setSelectedFaculty(member);
-                        setShowAssignModal(true);
-                      }}
+                      onClick={() => handleAssignStudents(member)}
                       className="text-[#1B6B7B] font-medium hover:text-[#145a63] transition-colors"
                     >
                       Assign Students
@@ -271,11 +276,13 @@ export default function FacultyClient() {
 
       {showAssignModal && selectedFaculty && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-lg mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Assign Students to {selectedFaculty.name}</h3>
-            <p className="text-sm text-gray-500 mb-4">Select students to assign to this faculty member</p>
+          <div className="bg-white rounded-2xl p-6 w-full max-w-lg mx-4 max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Assign Students to {selectedFaculty.name}</h3>
+              <p className="text-sm text-gray-500">{selectedFaculty.specialization}</p>
+            </div>
             
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto space-y-2 mb-4">
               {mockStudents.map((student) => (
                 <label
                   key={student.id}
@@ -291,7 +298,7 @@ export default function FacultyClient() {
                     onChange={() => toggleStudent(student.id)}
                     className="w-4 h-4 text-[#1B6B7B] rounded focus:ring-[#1B6B7B]"
                   />
-                  <div>
+                  <div className="flex-1">
                     <p className="font-medium text-gray-800">{student.name}</p>
                     <p className="text-sm text-gray-500">{student.email}</p>
                   </div>
@@ -299,24 +306,29 @@ export default function FacultyClient() {
               ))}
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => {
-                  setShowAssignModal(false);
-                  setSelectedFaculty(null);
-                  setSelectedStudents([]);
-                }}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAssignStudents}
-                disabled={selectedStudents.length === 0}
-                className="px-4 py-2 bg-[#1B6B7B] text-white rounded-xl font-medium hover:bg-[#145a63] transition-all disabled:opacity-50"
-              >
-                Assign {selectedStudents.length} Student{selectedStudents.length !== 1 ? 's' : ''}
-              </button>
+            <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+              <p className="text-sm text-gray-500">
+                {selectedStudents.length} student{selectedStudents.length !== 1 ? 's' : ''} selected
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowAssignModal(false);
+                    setSelectedFaculty(null);
+                    setSelectedStudents([]);
+                  }}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveAssignments}
+                  disabled={selectedStudents.length === 0}
+                  className="px-4 py-2 bg-[#1B6B7B] text-white rounded-xl font-medium hover:bg-[#145a63] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Assign
+                </button>
+              </div>
             </div>
           </div>
         </div>

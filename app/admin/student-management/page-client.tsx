@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 interface StudentPerformance {
   id: string;
@@ -114,6 +115,7 @@ const EnrollStudentModal = ({ isOpen, onClose, onEnroll }: { isOpen: boolean; on
 }
 
 export default function StudentManagementClient() {
+  const router = useRouter();
   const [students, setStudents] = useState<StudentPerformance[]>(mockStudents);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -283,7 +285,11 @@ export default function StudentManagementClient() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredStudents.map((student) => (
-                <tr key={student.id} className="hover:bg-gray-50/50 transition-colors group">
+                <tr 
+                  key={student.id} 
+                  className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
+                  onClick={() => router.push(`/admin/students/${student.id}`)}
+                >
                   <td className="py-4 px-4 sm:px-6">
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${student.at_risk ? 'bg-rose-50 text-rose-600' : 'bg-[#1B6B7B]/10 text-[#1B6B7B]'}`}>
